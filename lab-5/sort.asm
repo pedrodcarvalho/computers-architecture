@@ -1,65 +1,128 @@
 .data
-    vector: .word 246, 57, 48, 98, 34, 197, 12, 207, 182, 89, 143, 124, 118, 252, 243, 230
-    prompt: .asciiz "Array ordenado: "
+    Arr: .word 246, 57, 48, 98, 34, 197, 12, 207, 182, 89, 143, 124, 118, 252, 243, 230
+    SortedMsg: .asciiz "Array ordenado: "
+    Comma: .asciiz ", "
 
 .text
 .globl main
-    main:
-        la $s7, vector
+    sort:
+        addi $sp, $sp, -4
+        sw $ra, 0($sp)
 
-        li $s0, 0
-        li $s6, 15
+        addi $sp, $sp, -4
+        sw $s3, 0($sp)
 
-        li $s1, 0
+        addi $sp, $sp, -4
+        sw $s2, 0($sp)
 
-        li $t3, 0
-        li $t4, 16
+        addi $sp, $sp, -4
+        sw $s1, 0($sp)
 
-        li $v0, 4,
-        la $a0, prompt
-        syscall
+        addi $sp, $sp, -4
+        sw $s0, 0($sp)
 
-    loop:
-        sll $t7, $s1, 2
-        add $t7, $s7, $t7
+        add $s2, $a0, $zero
 
-        lw $t0, 0($t7)
-        lw $t1, 4($t7)
+        add $s3, $a1, $zero
 
-        slt $t2, $t0, $t1
-        bne $t2, $zero, iterate
+        add $s0, $zero, $zero
 
-        sw $t1, 0($t7)
-        sw $t0, 4($t7)
+    for_1st:
+        slt $t0, $s0, $s3
+        beq $t0, $zero, exit1
 
-    iterate:
-        addi $s1, $s1, 1
-        sub $s5, $s6, $s0
+        addi $s1, $s0, -1
 
-        bne  $s1, $s5, loop
+    for_2nd:
+        slti $t0, $s1, 0
+        bne $t0, $zero, exit2
+
+        sll $t1, $s1, 2
+
+        add $t2, $s2, $t1
+
+        lw $t3, 0($t2)
+
+        lw $t4, 4($t2)
+
+        slt $t0, $t4, $t3
+        beq $t0, $zero, exit2
+
+        add $a0, $s2, $zero
+
+        add $a1, $s1, $zero
+
+        jal swap
+
+        addi $s1, $s1, -1
+
+        j for_2nd
+
+    exit2:
         addi $s0, $s0, 1
-        li $s1, 0
+        j for_1st
 
-        bne  $s0, $s6, loop
+    exit1:
+        lw $s0, 0($sp)
+        addi $sp, $sp, 4
 
-    print:
-        beq $t3, $t4, end
+        lw $s1, 0($sp)
+        addi $sp, $sp, 4
 
-        lw $t5, 0($s7)
+        lw $s2, 0($sp)
+        addi $sp, $sp, 4
 
+        lw $s3, 0($sp)
+        addi $sp, $sp, 4
+
+        lw $ra, 0($sp)
+        addi $sp, $sp, 4
+
+        jr $ra
+
+    swap:
+        sll $t1, $a1, 2
+
+        add $t1, $a0, $t1
+
+        lw $t0, 0($t1)
+
+        lw $t2, 4($t1)
+
+        sw $t2, 0($t1)
+
+        sw $t0, 4($t1)
+
+        jr $ra
+
+    main:
+        la $a0, Arr
+        addi $a1, $zero, 16
+        jal sort
+
+        li $v0, 4
+        la $a0, SortedMsg
+        syscall
+
+        la $t0, Arr
+
+        la $t2, Arr
+        addi $t2, $t2, 64
+
+    print_loop:
+        lw $t1, 0($t0)
         li $v0, 1
-        move $a0, $t5
+        move $a0, $t1
         syscall
 
-        li $a0, 32
-        li $v0, 11
+        addi $t0, $t0, 4
+        li $v0, 4
+        la $a0, Comma
         syscall
 
-        addi $s7, $s7, 4
-        addi $t3, $t3, 1
+        bge $t0, $t2, end_print
+        j print_loop
 
-        j print
-
-    end:
+    end_print:
         li $v0, 10
         syscall
